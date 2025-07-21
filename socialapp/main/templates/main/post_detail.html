@@ -1,0 +1,47 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Post Detail{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: auto; padding: 20px;">
+  <h2 style="text-align: center;">Post by {{ post.author.username }}</h2>
+
+  <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 6px;">
+    <p>{{ post.content }}</p>
+    <p style="font-size: 0.9em; color: #9e1e1e;">{{ post.created_at|date:"Y-m-d H:i" }}</p>
+    <p>
+      <a href="{% url 'like_post' post.id %}" style="text-decoration: none;">👍 Like ({{ post.likes.count }})</a>
+    </p>
+  </div>
+
+  <h3>Comments</h3>
+  <ul style="list-style: none; padding: 0;">
+    {% for comment in comments %}
+      <li style="border-bottom: 1px solid #eee; padding: 10px 0;">
+        <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+        {% if comment.user == user %}
+          <form action="{% url 'delete_comment' comment.id %}" method="post" style="display:inline; margin-left: 10px;">
+            {% csrf_token %}
+            <button type="submit" style="border: none; background: none; color: red; cursor: pointer;">✖</button>
+          </form>
+        {% endif %}
+        <div style="font-size: 0.8em; color: #9e1e1e;">{{ comment.created_at|date:"Y-m-d H:i" }}</div>
+      </li>
+    {% empty %}
+      <li>No comments yet.</li>
+    {% endfor %}
+  </ul>
+
+  <h4>Add a comment</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ comment_form.as_p }}
+    {% if comment_form.errors %}
+      <div style="color: red; font-size: 0.9em;">
+        {{ comment_form.errors }}
+      </div>
+    {% endif %}
+    <button type="submit" style="margin-top: 10px; padding: 5px 15px; background-color: #444; color: white; border: none; border-radius: 4px;">Add Comment</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+  <div style="text-align: center; padding: 10px 10px;">
+    <img src="{% static 'main/donuts3.jpg' %}" alt="Logo" style="max-width: 300px; border-radius: 10px; box-shadow: 0 0 10px #ccc;">
+    <h1 style="margin-top: 20px; font-size: 2em; color: #be0769;">Добро пожаловать в Клуб Любителей Пончиков</h1>
+    <p style="font-size: 1.2em; color: #40142b;">Сеть сладкого питания "Пончик-life" приглашает поделиться мнением и 
+      вкусовыми эмоциями о нашей подукции!</p>
+
+    {% if user.is_authenticated %}
+      <p><a href="{% url 'index' %}">Go to Feed</a></p>
+    {% else %}
+      <p><a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">Register</a></p>
+    {% endif %}
+  </div>
+{% endblock %}

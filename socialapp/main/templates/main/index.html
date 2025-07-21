@@ -1,0 +1,104 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Feed{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: auto; padding: 20px;">
+  <h2 style="text-align: center; margin-bottom: 20px;">Feed</h2>
+
+  {% if user.is_authenticated %}
+    <!-- Кнопка "Показать всех" -->
+    <form method="get" style="text-align: center; margin-bottom: 20px;">
+      <button type="submit" name="all" value="1" style="padding: 5px 10px; background: deeppink; color: white; border: none; border-radius: 4px;">Показать всех</button>
+    </form>
+
+    <!-- Форма создания поста -->
+    <form method="post" enctype="multipart/form-data" style="margin-bottom: 30px;">
+      {% csrf_token %}
+      {{ form.as_p }}
+      {% if form.errors %}
+        <div style="color: red; font-size: 0.9em;">
+          {% if form.errors|length > 1 %}
+            <p><strong>Please correct the errors below:</strong></p>
+          {% else %}
+            <p><strong>Please correct the error below:</strong></p>
+          {% endif %}
+          {{ form.errors }}
+        </div>
+      {% endif %}
+      <button type="submit" style="padding: 5px 15px; border: none; background: #444; color: #fff; border-radius: 4px;">Post</button>
+    </form>
+  {% else %}
+    <p style="text-align: center;">You must <a href="{% url 'login' %}">log in</a> to post something.</p>
+  {% endif %}
+
+  <!-- Лента постов -->
+  <ul style="list-style: none; padding: 0;">
+    {% for post in posts %}
+      <li style="margin-bottom: 40px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+        <p>
+          <strong>{{ post.author }}</strong>
+
+          {% if user != post.author %}
+			{% if post.author in following_users %}
+              <form method="post" action="{% url 'follow_user' post.author.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" style="margin-left: 10px; padding: 3px 8px; border-radius: 4px;">Отписаться</button>
+              </form>
+            {% else %}
+              <form method="post" action="{% url 'follow_user' post.author.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" style="margin-left: 10px; padding: 3px 8px; border-radius: 4px;">Подписаться</button>
+              </form>
+            {% endif %}
+          {% endif %}
+        </p>
+
+        <p style="margin: 5px 0; white-space: pre-line;">{{ post.content }}</p>
+
+        {% if post.image %}
+          <div style="margin: 10px 0;">
+            <img src="{{ post.image.url }}" alt="Post Image" style="max-width: 100%; height: auto; border: 1px solid #ccc;">
+          </div>
+        {% endif %}
+
+        <p style="font-size: 0.9em; color: #9e1e1e;">
+          <a href="{% url 'like_post' post.id %}" style="margin-right: 10px; text-decoration: none;">🔥 Like ({{ post.likes.count }})</a>
+        </p>
+
+        <!-- Отображение комментариев -->
+        <div style="margin-top: 10px;">
+          <strong>Комментарии:</strong>
+          {% for comment in post.comments.all %}
+            <div style="margin-left: 10px; font-size: 0.9em;">
+              <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
+            </div>
+          {% empty %}
+            <div style="margin-left: 10px; font-size: 0.9em; color: #777;">Нет комментариев</div>
+          {% endfor %}
+        </div>
+
+        <!-- Форма добавления комментария -->
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'post_detail' post.id %}" style="margin-top: 10px;">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Оставьте комментарий..." required
+              style="width: 100%; padding: 5px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #ccc;">
+            <button type="submit" style="padding: 5px 10px; background: deeppink; color: white; border: none; border-radius: 4px;">Отправить</button>
+          </form>
+        {% endif %}
+
+        <!-- Кнопка удаления поста -->
+        {% if post.author == user %}
+          <form method="post" action="{% url 'delete_post' post.id %}" style="margin-top: 5px;">
+            {% csrf_token %}
+            <button type="submit" style="background:none; border:none; color:red; cursor:pointer;">Удалить пост</button>
+          </form>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No posts yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
